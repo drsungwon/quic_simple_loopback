@@ -33,13 +33,13 @@ src/client.py를 실행함<br />
 <h2>수정 방법</h2>	
 
 Server
-> step.1: 개발할 프로토콜을 lib/server_lib_loopbackprotocol.py 처럼 개발함
-> step.2: server.py 코드의 [SHOULD BE MODIFIED] 부분을 step.1에 맞춰서 수정함
+> step.1: 개발할 프로토콜을 lib/server_lib_loopbackprotocol.py 처럼 개발함<br />
+> step.2: server.py 코드의 [SHOULD BE MODIFIED] 부분을 step.1에 맞춰서 수정함<br />
 > step.3: 코드를 실행함
 
 Client 
-> step.1: 개발할 프로토콜을 lib/client_lib_loopbackprotocol.py 처럼 개발함
-> step.2: client.py 코드의 [SHOULD BE MODIFIED] 부분을 step.1에 맞춰서 수정함
+> step.1: 개발할 프로토콜을 lib/client_lib_loopbackprotocol.py 처럼 개발함<br />
+> step.2: client.py 코드의 [SHOULD BE MODIFIED] 부분을 step.1에 맞춰서 수정함<br />
 > step.3: 코드를 실행함
 
 <br />
