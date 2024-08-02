@@ -101,3 +101,24 @@ class SimpleLoopbackClientProtocol(QuicConnectionProtocol):
 # H means unsigned short in C
 # ref: https://docs.python.org/3/library/struct.html#format-characters 
 #
+
+'''
+# concurrency code summary
+
+r = asyncio.get_event_loop()	
+    Get the current event loop.
+    https://docs.python.org/3/library/asyncio-eventloop.html#asyncio.get_event_loop
+    use asyncio.run()
+
+r.create_future()				
+    Create an asyncio.Future object attached to the event loop.
+    https://docs.python.org/3/library/asyncio-eventloop.html#asyncio.loop.create_future
+
+asyncio.shield(r)
+    Protect an awaitable object from being cancelled.
+    https://docs.python.org/3/library/asyncio-task.html#asyncio.shield
+
+r.set_result()
+    Mark the Future as done and set its result.
+    https://docs.python.org/3/library/asyncio-future.html#asyncio.Future.set_result
+'''
