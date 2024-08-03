@@ -1,83 +1,104 @@
-# 
-# Client side code
+import asyncio
+import logging
+import pickle
+from typing import cast
+import time
+
+from aioquic.asyncio.client import connect
+from aioquic.quic.configuration import QuicConfiguration
+
+from lib.client_lib_argparser import get_args_parser, set_quic_configuration
+from lib.client_lib_log import set_quic_logging
+
+## [SHOULD BE MODIFIED] defines server side service protocol
+from lib.client_lib_loopbackprotocol import get_protocol_class, get_protocol_name, get_protocol_alpn
+
 #
-# Simple Loopback Service Protocol
+# main function
 #
 # ref: https://github.com/aiortc/aioquic/blob/main/examples/doq_client.py
 #
 
-import asyncio
-import struct
-import logging
-
-from aioquic.asyncio.protocol import QuicConnectionProtocol
-from aioquic.quic.events import QuicEvent, StreamDataReceived
-
-#
-# configuration functions for client.py
-#
-
-def get_protocol_class():
-    return SimpleLoopbackClientProtocol
-
-def get_protocol_name():
-    return 'Simple Loopback over QUIC' 
-
-def get_protocol_alpn():
-    return 'slboq'
+def save_session_ticket(ticket):
+    """
+    Callback which is invoked by the TLS engine when a new session ticket is received.
+    """
+    logging.info("New session ticket received")
+    if args.session_ticket:
+        with open(args.session_ticket, "wb") as fp:
+            pickle.dump(ticket, fp)
 
 #
-# simple loopback service protocol code @ here 
+# main function
+#
+# ref: https://aioquic.readthedocs.io/en/latest/asyncio.html
 #
 
-class SimpleLoopbackClientProtocol(QuicConnectionProtocol):
+async def main(
+    configuration: QuicConfiguration,
+    host: str,
+    port: int,
+) -> None:
 
-    async def activate_protocol(self) -> None:
-        '''
-        Callback which is invoked by the client.py when a client program is executed
-        '''
-        for count in range(0,20):
-            await asyncio.sleep(2)
-            msg = 'hello #' + str(count+1)
-            await self.send_loopback_msg(str(msg))
+    #
+    # activate server process
+    #  
 
-    async def send_loopback_msg(self, msg: str) -> None:
-
-        # make message to send
-        data = bytes(msg, encoding='utf8')
-        data = struct.pack("!H", len(data)) + data
-
-        # send message 
-        self.stream_id = self._quic.get_next_available_stream_id()
-        self._quic.send_stream_data(self.stream_id, data, end_stream=True)
-        self.transmit()
-        logging.info("send_loopback_msg(): {} sent".format(msg))
-
-    def quic_event_received(self, event: QuicEvent) -> None:
-
-        if isinstance(event, StreamDataReceived):
-            # parse answer
-            length = struct.unpack("!H", bytes(event.data[:2]))[0]
-            msg = event.data[2 : 2 + length]
-            logging.info("quic_event_received(): {}".format(msg))
+    logging.info(f"Connecting to {host}:{port}")
+    
+    async with connect(
+        host,
+        port,
+        configuration=configuration,
+        session_ticket_handler=save_session_ticket,
+        create_protocol=get_protocol_class(),
+    ) as client:
+        
+        await client.activate_protocol()
 
 #
-# QUIC Evnets ?
+# main procedure for client configuration and activation
 #
-# ref: https://aioquic.readthedocs.io/en/latest/quic.html#module-aioquic.quic.events 
-# ref: https://github.com/aiortc/aioquic/blob/main/src/aioquic/quic/events.py
-# 
-
-#
-# pack ?
-#
-# struct.pack() converts between Python values and C structs represented as Python bytes objects
-# ref: https://docs.python.org/3/library/struct.html 
-#
-# ! means network (= big-endian)
-# ref: https://docs.python.org/3/library/struct.html#byte-order-size-and-alignment
-#
-# H means unsigned short in C
-# ref: https://docs.python.org/3/library/struct.html#format-characters 
+# ref: https://aioquic.readthedocs.io/en/latest/quic.html#module-aioquic.quic.configuration
 #
 
+if __name__ == "__main__":
+
+    #
+    # defines name and alpn (id) of service
+    #
+
+    ## defines name of service
+    name_of_service = get_protocol_name()
+
+    ## defines alpn identifier of service 
+    alpn_of_service = get_protocol_alpn()
+
+    #
+    # configures cli args and logging options
+    #
+
+    args = get_args_parser(name_of_service)
+    set_quic_logging(args)
+
+    #
+    # configures QUIC protocol
+    #
+
+    configuration = QuicConfiguration(alpn_protocols=[alpn_of_service], is_client=True)
+    set_quic_configuration(configuration, args)
+
+    #
+    # executes client
+    #
+
+    try:
+        asyncio.run(
+            main(
+                configuration=configuration,
+                host=args.host,
+                port=args.port,
+            )
+        )
+    except KeyboardInterrupt:
+        logging.info('Client terminated ...')
