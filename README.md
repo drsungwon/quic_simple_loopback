@@ -27,6 +27,9 @@ src/server.py를 실행함<br />
 src/client.py를 실행함<br />
 > python client.py --ca-certs ../cert/server.crt --port 8053
 
+Poetry 실행을 중지함<br />
+> exit
+
 <br />
 <br />
 
