@@ -51,6 +51,7 @@ class SimpleLoopbackServerProtocol(QuicConnectionProtocol):
 
             # send answer
             self._quic.send_stream_data(event.stream_id, data, end_stream=True)
+            self.transmit()
 
 #
 # QUIC Evnets ?
