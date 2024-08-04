@@ -4,7 +4,7 @@ Server : Python (aioquic)
 
 Client : Python (aioquic)
 
-Networking : HTTP/3 (QUIC)
+Networking : QUIC
 
 Packaging : Poetry (추가 패키지: aioquic)
 
